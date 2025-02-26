@@ -1,0 +1,20 @@
+# 1) Virtual environment
+venv/
+
+# 2) Python cache/bytecode files
+__pycache__/
+*.py[cod]
+
+# 3) Environment variables file (contains sensitive data)
+.env
+
+# 4) Model files (.pth)
+*.pth
+
+# 5) Potentially large or generated directories
+data/
+generated_images/
+uploads/
+
+# 6) OS-specific files (macOS)
+.DS_Store

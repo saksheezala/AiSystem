@@ -1,0 +1,132 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f2f2f2;
+    color: #333;
+    padding: 20px;
+}
+
+/* Container for main content */
+.container {
+    max-width: 500px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings */
+h1,
+h2,
+h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+/* Form elements */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form textarea,
+form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form textarea {
+    resize: vertical;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Flash messages */
+.flash {
+    background-color: #ffdddd;
+    border-left: 6px solid #f44336;
+    margin-bottom: 15px;
+    padding: 10px;
+    font-weight: bold;
+}
+
+/* Navigation and links */
+nav {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #007BFF;
+    margin: 0 10px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* Lists for cases and users */
+ul {
+    list-style: none;
+    margin-top: 20px;
+    padding: 0;
+}
+
+ul li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+/* Image styling */
+img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    button {
+        font-size: 14px;
+    }
+}
