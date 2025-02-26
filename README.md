@@ -1,4 +1,4 @@
-# Project1 - Secure Forensic Image Classification and Management System
+#AiSystem - Secure Forensic Image Classification and Management System
 
 ## Overview
 
