@@ -99,7 +99,11 @@ def register():
         username = request.form['username']
         password = request.form['password']
         hashed_password = generate_password_hash(password)
-        mongo.db.users.insert_one({'username': username, 'password': hashed_password, 'role': 'user'})
+        mongo.db.users.insert_one({
+            'username': username,
+            'password': hashed_password,
+            'role': 'user'
+        })
         log_activity("Registration", f"User {username} registered.")
         flash('Registration successful. Please log in.')
         return redirect(url_for('login'))
@@ -144,18 +148,32 @@ def add_case():
     return render_template('add_case.html')
 
 @app.route('/upload_image/<case_id>', methods=['GET', 'POST'])
-def upload_image(case_id):
+def upload_img(case_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     if request.method == 'POST':
         image = request.files['image']
         if image:
-            image_result = classify_image(image)
+            upload_folder = os.path.join(os.getcwd(), "uploads")
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+            image_path = os.path.join(upload_folder, image.filename)
+            image.save(image_path)
+            print("Image saved at:", image_path)  # Debug print
+
+            try:
+                with open(image_path, 'rb') as f:
+                    image_result = classify_image(f)
+            except Exception as e:
+                image_result = f"Error: Invalid image file. {str(e)}"
+            print("Classification result:", image_result)  # Debug print
+
             mongo.db.cases.update_one(
                 {'_id': ObjectId(case_id)},
                 {'$push': {'images': {'path': os.path.join("uploads", image.filename), 'type': image_result}}}
             )
             log_activity("Image Uploaded", f"Image '{image.filename}' uploaded to case {case_id}, classified as {image_result}.")
+
             if image_result != "Attack Type: Normal":
                 now = datetime.datetime.utcnow()
                 last_alert = session.get('last_alert_time')
@@ -170,7 +188,9 @@ def upload_image(case_id):
                         log_activity("Email Error", f"Error sending email for case {case_id}: {str(e)}")
             flash(f'Image classified as {image_result}.')
             return redirect(url_for('view_case', case_id=case_id))
-    return render_template('upload_image.html')
+    return render_template('upload_image.html', case_id=case_id)
+
+
 
 @app.route('/delete_my_case/<case_id>', methods=['POST'])
 def delete_my_case(case_id):
@@ -188,22 +208,24 @@ def delete_my_case(case_id):
 def delete_my_image_from_path(case_id, filename):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    expected_path = "uploads/" + filename
-    mongo.db.cases.update_one(
-        {
-            '_id': ObjectId(case_id),
-            'user_id': session['user_id'],
-            'images.path': expected_path
-        },
-        {'$set': {'images.$.deleted': True}}
+    # Construct the expected path using os.path.join for consistency
+    expected_path = os.path.join("uploads", filename)
+    
+    # Use array filters to update all matching array elements
+    result = mongo.db.cases.update_one(
+        {'_id': ObjectId(case_id), 'user_id': session['user_id']},
+        {'$set': {'images.$[elem].deleted': True}},
+        array_filters=[{'elem.path': expected_path}]
     )
-    log_activity("Image Deleted", f"User {session['username']} soft-deleted image '{filename}' from case {case_id} (by path).")
-    flash('Image deleted (soft delete).')
+    
+    if result.modified_count:
+        log_activity("Image Deleted", f"User {session['username']} soft-deleted image '{filename}' from case {case_id}.")
+        flash('Image deleted (soft delete).')
+    else:
+        flash("Image deletion did not modify any document. Please check the image details.")
+    
     return redirect(url_for('view_case', case_id=case_id))
 
-@app.route('/uploads/<filename>')
-def get_image(filename):
-    return send_from_directory('uploads', filename)
 
 @app.route('/get_uploaded_image/<image_id>')
 def get_uploaded_image(image_id):
@@ -215,7 +237,7 @@ def get_uploaded_image(image_id):
 
 @app.route('/uploads/<filename>')
 def get_image_from_path(filename):
-    return send_from_directory('uploads', filename)
+    return send_from_directory(os.path.join(os.getcwd(), "uploads"), filename)
 
 @app.route('/view_case/<case_id>')
 def view_case(case_id):

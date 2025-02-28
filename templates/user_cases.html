@@ -1,47 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>User Cases</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
-        </div>
-    </nav>
-    <div class="container">
-        <h2 class="text-center mb-4">Cases for User: {{ username }}</h2>
-        <ul class="list-group mt-3">
-            {% for case in cases %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <a href="{{ url_for('view_case', case_id=case['_id']) }}">{{ case['title'] }}</a>
-                    {% if case.deleted %}
-                    <span class="badge bg-warning text-dark">Deleted</span>
-                    {% endif %}
-                </div>
-                <div>
-                    <!-- Admin permanent deletion button -->
-                    <form action="{{ url_for('delete_case', case_id=case['_id']) }}" method="post"
-                        style="display:inline-block;"
-                        onsubmit="return confirm('Are you sure you want to permanently delete this case?');">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete Permanently</button>
-                    </form>
-                </div>
-            </li>
-            {% else %}
-            <li class="list-group-item">No cases found for this user.</li>
-            {% endfor %}
-        </ul>
+{% extends "base.html" %}
+{% block title %}User Cases - Project1{% endblock %}
+{% block content %}
+<div class="container mx-auto">
+    <h2 class="text-center text-3xl font-bold mb-4">Cases for User: {{ username }}</h2>
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Case ID</th>
+                    <th>Case Title</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr>
+                    <td>{{ case['_id'] }}</td>
+                    <td>{{ case['title'] }}</td>
+                    <td>
+                        <a href="{{ url_for('view_case', case_id=case['_id']) }}" class="btn btn-info btn-xs">View
+                            Case</a>
+                        <form action="{{ url_for('delete_case', case_id=case['_id']) }}" method="post"
+                            style="display:inline-block;"
+                            onsubmit="return confirm('Are you sure you want to permanently delete this case?');">
+                            <button type="submit" class="btn btn-error btn-xs">Delete Permanently</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No cases found for this user.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+</div>
+{% endblock %}

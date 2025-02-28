@@ -2,7 +2,7 @@ import hashlib
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-import os
+import io
 import logging
 from attack_detector import AttackClassifier  # Multi-class classifier
 from detect_tiny import RegressionCNN           # FGSM regression detector
@@ -35,41 +35,40 @@ transform = transforms.Compose([
     transforms.Normalize((0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821))
 ])
 
-def compute_sha256(image_path):
+def compute_sha256(image_bytes):
     """
-    Compute the SHA-256 hash of the image file at image_path.
-    This is used for integrity verification.
+    Compute the SHA-256 hash of the image file bytes.
     """
     hasher = hashlib.sha256()
-    with open(image_path, 'rb') as img_file:
-        hasher.update(img_file.read())
+    hasher.update(image_bytes)
     return hasher.hexdigest()
 
-def classify_image(image):
+def classify_image(file_obj):
     """
     Classify the uploaded image using the loaded models.
     
     Parameters:
-      - image: a FileStorage object (from Flask request.files).
+      - file_obj: A file-like object (from Flask request.files['image']).
     
     The function:
-      1. Saves the image temporarily in the 'uploads' directory.
+      1. Reads the image into memory (without saving to disk).
       2. Computes its hash for integrity verification.
       3. Applies the transformation and passes it through the classifier.
       4. Maps the predicted class to a label.
       5. If the attack type is 'FGSM', also obtains a regression output.
-      6. Verifies that the file has not been tampered with.
-      7. Returns the classification result as a string.
+      6. Returns the classification result as a string.
     """
-    os.makedirs("uploads", exist_ok=True)
-    file_path = os.path.join("uploads", image.filename)
-    image.save(file_path)
-
-    # Compute original hash before processing
-    original_hash = compute_sha256(file_path)
-
     try:
-        img = Image.open(file_path).convert("RGB")
+        # Read the file content into memory
+        image_bytes = file_obj.read()
+        file_obj.seek(0)  # Reset the pointer to allow re-reading
+        
+        # Compute original hash before processing
+        original_hash = compute_sha256(image_bytes)
+        
+        # Load the image from bytes
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
     except Exception as e:
         logging.error("Error processing image: " + str(e))
         return "Error: Invalid image file"
@@ -82,7 +81,7 @@ def classify_image(image):
         pred_class = class_output.argmax(dim=1).item()
         class_labels = {0: "Normal", 1: "FGSM", 2: "PGD"}
         attack_type = class_labels.get(pred_class, "Unknown")
-        
+
         if attack_type == "FGSM":
             # Optionally get additional regression output if needed.
             epsilon_pred = regression_model(img_tensor).item()
@@ -91,7 +90,7 @@ def classify_image(image):
             result_text = f"Attack Type: {attack_type}"
 
     # Compute hash after processing to verify integrity
-    processed_hash = compute_sha256(file_path)
+    processed_hash = compute_sha256(image_bytes)
     if original_hash != processed_hash:
         return "Error: Image integrity compromised"
 
