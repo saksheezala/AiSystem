@@ -19,7 +19,7 @@ from flask_limiter.util import get_remote_address
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.secret_key = os.urandom(24)
 
 # Initialize MongoDB connection
