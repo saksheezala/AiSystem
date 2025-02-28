@@ -25,7 +25,7 @@ def load_models():
     
     return classifier, regression_model
 
-# Load the models once at module import
+# Load the models once at module import (outside any function)
 classifier, regression_model = load_models()
 
 # Define the transformation to be applied to input images
@@ -62,13 +62,10 @@ def classify_image(file_obj):
         # Read the file content into memory
         image_bytes = file_obj.read()
         file_obj.seek(0)  # Reset the pointer to allow re-reading
-        
         # Compute original hash before processing
         original_hash = compute_sha256(image_bytes)
-        
         # Load the image from bytes
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
     except Exception as e:
         logging.error("Error processing image: " + str(e))
         return "Error: Invalid image file"
@@ -81,9 +78,7 @@ def classify_image(file_obj):
         pred_class = class_output.argmax(dim=1).item()
         class_labels = {0: "Normal", 1: "FGSM", 2: "PGD"}
         attack_type = class_labels.get(pred_class, "Unknown")
-
         if attack_type == "FGSM":
-            # Optionally get additional regression output if needed.
             epsilon_pred = regression_model(img_tensor).item()
             result_text = f"Attack Type: FGSM"
         else:
