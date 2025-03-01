@@ -505,6 +505,6 @@ def api_update_profile():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Use 5000 as a fallback
+    port = int(os.environ.get("PORT", 5000))  # Render assigns this
     app.run(host="0.0.0.0", port=port)
 
