@@ -237,7 +237,11 @@ def get_uploaded_image(image_id):
 
 @app.route('/uploads/<filename>')
 def get_image_from_path(filename):
-    return send_from_directory(os.path.join(os.getcwd(), "uploads"), filename)
+    uploads_path = os.path.join(os.getcwd(), "uploads")
+    file_path = os.path.join(uploads_path, filename)
+    print("Serving image from:", file_path)  # Debug: Check this in your logs
+    return send_from_directory(uploads_path, filename)
+
 
 @app.route('/view_case/<case_id>')
 def view_case(case_id):
