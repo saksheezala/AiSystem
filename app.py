@@ -502,6 +502,16 @@ def api_update_profile():
         return jsonify({"message": "Profile updated successfully."}), 200
     else:
         return jsonify({"message": "No changes made."}), 200
+    
+from flask import send_from_directory
+
+UPLOAD_FOLDER = "uploads"  # Make sure this is the correct path
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
 
 
 if __name__ == "__main__":
